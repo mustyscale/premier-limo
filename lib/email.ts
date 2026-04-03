@@ -199,21 +199,26 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData) {
     return { id: "demo-email-" + Date.now() };
   }
 
-  // Real mode — send via Resend
-  const { Resend } = await import("resend");
-  const resend = new Resend(resendKey);
+  // Real mode — send via Resend REST API (edge-compatible, no SDK needed)
   const fromAddress = process.env.RESEND_FROM_EMAIL ?? "bookings@yourdomain.com";
 
   const VEHICLE_LABEL: Record<string, string> = {
     SEDAN: "Sedan", SUV: "SUV", SPRINTER: "Sprinter Van", LIMO: "Limousine",
   };
 
-  const result = await resend.emails.send({
-    from: `Premier Limo Service <${fromAddress}>`,
-    to: data.customerEmail,
-    subject: `Booking Confirmed — ${VEHICLE_LABEL[data.vehicleType] ?? data.vehicleType} on ${data.date}`,
-    html: buildEmailHtml(data),
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${resendKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: `Premier Limo Service <${fromAddress}>`,
+      to: data.customerEmail,
+      subject: `Booking Confirmed — ${VEHICLE_LABEL[data.vehicleType] ?? data.vehicleType} on ${data.date}`,
+      html: buildEmailHtml(data),
+    }),
   });
 
-  return result;
+  return res.json();
 }

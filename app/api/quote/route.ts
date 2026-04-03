@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDistanceMatrix } from "@/lib/maps";
 import { calculatePrice, BASE_RATES, PER_MILE_RATES, WEEKEND_SURCHARGE_RATE } from "@/lib/pricing";
 
+export const runtime = "edge";
+
 const VALID_VEHICLES = ["SEDAN", "SUV", "SPRINTER", "LIMO"];
 
 export async function POST(req: NextRequest) {

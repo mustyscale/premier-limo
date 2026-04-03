@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/store";
+
+export const runtime = "edge";
 import { isAdminAuthenticated } from "@/lib/auth";
 
 const VALID_STATUSES = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"];

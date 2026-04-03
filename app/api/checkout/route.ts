@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/store";
 
+export const runtime = "edge";
+
 type FormData = {
   customerName: string;
   customerPhone: string;

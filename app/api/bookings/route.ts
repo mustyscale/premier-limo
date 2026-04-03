@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/store";
+
+export const runtime = "edge";
 import { getDistanceMatrix } from "@/lib/maps";
 import { calculatePrice } from "@/lib/pricing";
 const VALID_VEHICLES = ["SEDAN", "SUV", "SPRINTER", "LIMO"];
