@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// VehicleType values: SEDAN | SUV | SPRINTER | LIMO
+// BookingStatus values: PENDING | CONFIRMED | COMPLETED | CANCELLED
+
+model Booking {
+  id               String   @id @default(cuid())
+  customerName     String
+  customerPhone    String
+  customerEmail    String
+  pickupAddress    String
+  dropoffAddress   String
+  vehicleType      String   @default("SEDAN")
+  date             String
+  time             String
+  passengers       Int
+  estimatedPrice   Float
+  distanceMiles    Float?
+  duration         String?
+  isWeekend        Boolean  @default(false)
+  status           String   @default("PENDING")
+  stripeSessionId  String?  @unique
+  stripePaymentId  String?
+  createdAt        DateTime @default(now())
+}

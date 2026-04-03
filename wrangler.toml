@@ -1,0 +1,20 @@
+name = "premier-limo"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+# ── Environment variables for Cloudflare Pages ────────────────────────────────
+# Set these in the Cloudflare Dashboard → Pages → Settings → Environment Variables
+
+# [vars]
+# NEXT_PUBLIC_APP_URL = "https://premier-limo.pages.dev"
+# GOOGLE_MAPS_API_KEY = "..."
+# STRIPE_SECRET_KEY   = "..."
+# RESEND_API_KEY      = "..."
+# ADMIN_PASSWORD      = "..."
+# AUTH_SECRET         = "..."
+
+# ── Database on Cloudflare ────────────────────────────────────────────────────
+# Use Turso (LibSQL cloud) — free tier available at turso.tech
+# DATABASE_URL        = "libsql://your-db.turso.io"
+# DATABASE_AUTH_TOKEN = "..."
