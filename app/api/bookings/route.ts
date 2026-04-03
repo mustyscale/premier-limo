@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/store";
 import { getDistanceMatrix } from "@/lib/maps";
 import { calculatePrice } from "@/lib/pricing";
 const VALID_VEHICLES = ["SEDAN", "SUV", "SPRINTER", "LIMO"];
@@ -53,18 +53,24 @@ export async function POST(req: NextRequest) {
     const priceBreakdown = calculatePrice(vehicleType, distanceMiles, date);
 
     // ── Persist booking ────────────────────────────────────────────────────
-    const booking = await prisma.booking.create({
+    const booking = db.booking.create({
       data: {
         customerName,
         customerPhone,
         customerEmail,
         pickupAddress,
         dropoffAddress,
-        vehicleType: vehicleType as string,
+        vehicleType,
         date,
         time,
         passengers: passengerCount,
         estimatedPrice: priceBreakdown.estimatedPrice,
+        distanceMiles: distanceMiles ?? null,
+        duration: durationText ?? null,
+        isWeekend: priceBreakdown.isWeekend,
+        status: "PENDING",
+        stripeSessionId: null,
+        stripePaymentId: null,
       },
     });
 

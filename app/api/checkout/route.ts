@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/store";
 
 type FormData = {
   customerName: string;
@@ -21,7 +21,6 @@ type QuoteData = {
   isWeekend: boolean;
 };
 
-// Demo mode when no real Stripe key is configured
 function isDemoMode() {
   const key = process.env.STRIPE_SECRET_KEY ?? "";
   return key === "" || key.startsWith("sk_test_placeholder") || key === "your-stripe-secret-key";
@@ -36,52 +35,44 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "formData and quoteData are required." }, { status: 400 });
     }
 
-    // ── Demo mode: create booking directly, no Stripe ─────────────────────────
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL ??
+      (req.headers.get("origin") || "http://localhost:3000");
+
+    // ── Demo mode: create booking in memory, no Stripe ────────────────────────
     if (isDemoMode()) {
       const demoSessionId = `demo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-      const booking = await prisma.booking.create({
+      const booking = db.booking.create({
         data: {
-          customerName:   formData.customerName,
-          customerPhone:  formData.customerPhone,
-          customerEmail:  formData.customerEmail,
-          pickupAddress:  formData.pickupAddress,
-          dropoffAddress: formData.dropoffAddress,
-          vehicleType:    formData.vehicleType,
-          date:           formData.date,
-          time:           formData.time,
-          passengers:     Number(formData.passengers),
-          estimatedPrice: quoteData.estimatedPrice,
-          distanceMiles:  quoteData.distanceMiles,
-          duration:       quoteData.duration,
-          isWeekend:      quoteData.isWeekend,
-          status:         "CONFIRMED",
+          customerName:    formData.customerName,
+          customerPhone:   formData.customerPhone,
+          customerEmail:   formData.customerEmail,
+          pickupAddress:   formData.pickupAddress,
+          dropoffAddress:  formData.dropoffAddress,
+          vehicleType:     formData.vehicleType,
+          date:            formData.date,
+          time:            formData.time,
+          passengers:      Number(formData.passengers),
+          estimatedPrice:  quoteData.estimatedPrice,
+          distanceMiles:   quoteData.distanceMiles ?? null,
+          duration:        quoteData.duration ?? null,
+          isWeekend:       quoteData.isWeekend,
+          status:          "CONFIRMED",
           stripeSessionId: demoSessionId,
+          stripePaymentId: null,
         },
       });
 
-      console.log(`[checkout] DEMO MODE — booking created: ${booking.id}`);
-
-      const appUrl =
-        process.env.NEXT_PUBLIC_APP_URL ??
-        (req.headers.get("origin") || "http://localhost:3000");
-
-      return NextResponse.json({
-        url: `${appUrl}/confirmation?session_id=${demoSessionId}`,
-        sessionId: demoSessionId,
-        demo: true,
-      });
+      console.log(`[checkout] DEMO — booking created: ${booking.id}`);
+      return NextResponse.json({ url: `${appUrl}/confirmation?session_id=${demoSessionId}`, demo: true });
     }
 
-    // ── Production mode: create real Stripe Checkout Session ─────────────────
+    // ── Production: real Stripe Checkout Session ──────────────────────────────
     const { stripe, toCents, VEHICLE_DISPLAY } = await import("@/lib/stripe");
 
     const meta = (value: string | number | boolean, maxLen = 490): string =>
       String(value).slice(0, maxLen);
-
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ??
-      (req.headers.get("origin") || "http://localhost:3000");
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
